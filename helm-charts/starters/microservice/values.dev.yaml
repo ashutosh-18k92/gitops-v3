@@ -1,0 +1,84 @@
+# Development environment overrides for aggregator service
+
+# Single replica for development
+replicaCount: 1
+
+image:
+  # Use latest dev image
+  tag: "dev-latest"
+  # Always pull in development
+  pullPolicy: Always
+
+# Development resource limits (lower than production)
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "128Mi"
+    cpu: "100m"
+
+# Development environment variables
+env:
+  PORT: "3000"
+  SERVICE_NAME: "aggregator"
+  NODE_ENV: "development"
+  LOG_LEVEL: "debug"
+
+# Faster health checks in development
+healthcheck:
+  liveness:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  readiness:
+    initialDelaySeconds: 3
+    periodSeconds: 3
+
+# Development VirtualService configuration
+virtualService:
+  enabled: true
+  namespace: istio-system
+  hosts:
+    - aggregator-service.dev.api.local
+  gateways:
+    - super-fortnight-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api
+      route:
+        - destination:
+            port:
+              number: 3000
+      retries:
+        attempts: 2 # Fewer retries in dev
+        perTryTimeout: 2s
+        retryOn: 5xx,reset,connect-failure,refused-stream
+    - match:
+        - uri:
+            prefix: /health
+      route:
+        - destination:
+            port:
+              number: 3000
+      timeout: 2s
+
+# Istio sidecar with lower resources
+istio:
+  enabled: true
+  proxyCPU: "50m"
+  proxyMemory: "64Mi"
+  rewriteAppHTTPProbers: "true"
+
+podAnnotations:
+  sidecar.istio.io/proxyCPU: "50m"
+  sidecar.istio.io/proxyMemory: "64Mi"
+  sidecar.istio.io/rewriteAppHTTPProbers: "true"
+
+# No PDB in development
+podDisruptionBudget:
+  enabled: false
+
+# No autoscaling in development
+autoscaling:
+  enabled: false

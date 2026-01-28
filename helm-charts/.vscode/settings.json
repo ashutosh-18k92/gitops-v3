@@ -1,0 +1,6 @@
+{
+    "yaml.schemas": {
+        "file:///home/akumar/.vscode/extensions/docsmsft.docs-yaml-1.0.5/dist/toc.schema.json": "/toc\\.yml/i",
+        "https://www.schemastore.org/helmfile.json": "file:///home/akumar/Desktop/SuperFortnight-Dev/dummy-services-repos/helm-charts/services/paper/microservice/templates/serviceaccount.yaml"
+    }
+}

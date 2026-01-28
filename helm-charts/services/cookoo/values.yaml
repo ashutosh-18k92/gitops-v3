@@ -1,0 +1,15 @@
+global:
+  salad: caeser
+
+favorite:
+  drink: coffee
+  food: pizza
+pizzaToppings:
+  - mushrooms
+  - cheese
+  - peppers
+  - onions
+  - pineapple
+
+mysubchart:
+  dessert: ice cream

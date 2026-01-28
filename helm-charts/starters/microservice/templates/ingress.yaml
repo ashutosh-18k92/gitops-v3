@@ -1,0 +1,48 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ printf "%s-virtualservice" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.virtualService.namespace  }}
+  {{- $domain:=.Values.virtualService.domain}}
+  {{- $destinationHost := printf "%s.%s.svc.cluster.local" (include "microservice.fullname" .) .Release.Namespace}}
+  {{- $destinationPort := .Values.service.targetPort}}
+ 
+spec:
+  hosts:
+  {{- if .Values.virtualService.hosts }}
+  {{- range $index, $host := .Values.virtualService.hosts }}
+    - {{ printf "%s.%s" $host $domain  }}
+  {{- end }}
+  {{- else}}
+    - {{ printf "%s.%s" .Release.Name $domain }}
+  {{- end}}
+  gateways:
+  {{- range $index, $gateway := .Values.virtualService.gateways }}
+  - {{ $gateway }}
+  {{- end }}
+  http:
+  {{- $attempts := .Values.virtualService.attempts}}
+  {{- $perTryTimeoutSeconds := .Values.virtualService.perTryTimeoutSeconds}}
+  {{- range $index, $route := .Values.virtualService.routes }}
+  - match:
+    - uri:
+        prefix:
+          {{ printf "/%s" $route }}
+    route:
+    - destination:
+        host: {{ $destinationHost }}
+        port:
+          number: {{ $destinationPort }}
+    retries:
+      attempts: {{ default 3 $attempts }}
+      perTryTimeout: {{ printf "%ds" | default 2 $perTryTimeoutSeconds }}
+  {{- end }}
+  - match:
+  - uri:
+      prefix: /health
+  route:
+  - destination:
+      host: {{ $destinationHost}}
+      port:
+        number: {{$destinationPort}}
+  timeout: {{$perTryTimeoutSeconds}}
