@@ -1,13 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: kafka
+
 
 commonAnnotations:
   argocd.argoproj.io/sync-options: "Replace=true"
 # Which resources to include
 configMapGenerator:
   - name: kafka-metrics
+    namespace: kafka
     files:
       - metrics/jmx-exporter.yml    # External file
     options:

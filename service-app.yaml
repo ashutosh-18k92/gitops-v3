@@ -9,7 +9,7 @@ spec:
     # Source 1: Your GitOps repo (for values and ref)
     repoURL: https://github.com/ashutosh-18k92/gitops-v3.git
     targetRevision: HEAD
-    path: configmap
+    path: configmap/grafana
     directory:
       recurse: true
   destination:
