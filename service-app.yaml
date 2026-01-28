@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     # Source 1: Your GitOps repo (for values and ref)
-    repoURL: https://github.com/ashutosh-18k92/gitops-v2.git
+    repoURL: https://github.com/ashutosh-18k92/gitops-v3.git
     targetRevision: HEAD
     path: configmap
     directory:
@@ -17,5 +17,6 @@ spec:
     namespace: observability
   syncPolicy:
     automated:
+      enabled: true
       prune: true
       selfHeal: true
