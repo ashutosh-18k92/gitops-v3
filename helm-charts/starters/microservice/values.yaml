@@ -2,22 +2,31 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# This is to override the chart name.
+nameOverride: "" # releasename
+fullnameOverride: ""  # releaseName-chartName
+
+#version management for canary deployments
+version: v1
+
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: paper-service
+  repository: "microservice-example"
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "v1"
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
-# This is to override the chart name.
-nameOverride: "paper"
-fullnameOverride: "paper-service"
+
+# sidecar:
+#   sidecar.istio.io/proxyCPU: 100m
+#   sidecar.istio.io/proxyMemory: 128Mi
+#   sidecar.istio.io/rewriteAppHTTPProbers: "true"
 
 # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
 serviceAccount:
@@ -33,7 +42,11 @@ serviceAccount:
 
 # This is for setting Kubernetes Annotations to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
-podAnnotations: {}
+podAnnotations: {
+  "sidecar.istio.io/proxyCPU": "100m",
+  "sidecar.istio.io/proxyMemory": "128Mi",
+  "sidecar.istio.io/rewriteAppHTTPProbers": "true"
+}
 # This is for setting Kubernetes Labels to a Pod.
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
@@ -61,22 +74,22 @@ service:
 virtualService:
   enabled: true
   namespace: istio-system
+  hosts:
+    - my-awesome-service
+    - microserice-host
   domain: api.local
   gateways: 
     - superfortnight-gateway
-
-  # retryOn:
-  #   - 5xx
-  #   - reset
-  #   - connect-failure
-  #   - refused-stream
-  hosts:
-    - my-awesome-service
   routes:
     - api
   attempts: 3
-  perTryTimeoutSeconds: 2 # this will be used to calculate the timeout
-  retryOn: 5xx,reset,connect-failure,refused-stream
+  perTryTimeoutSeconds: 2 # this will be used to calculate the timeout (with 's' suffix - 2 not 2s )
+  retryOn:
+  - 5xx
+  - reset
+  - connect-failure
+  - refused-stream
+
   
   
 

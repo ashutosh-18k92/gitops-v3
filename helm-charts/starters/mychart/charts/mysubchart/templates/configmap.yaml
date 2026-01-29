@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{.Release.Name}}-cfgmap2
+{{include "resource.name" . | indent 2}}
 data:
   dessert: {{.Values.dessert}}
   salad: {{ .Values.global.salad}}

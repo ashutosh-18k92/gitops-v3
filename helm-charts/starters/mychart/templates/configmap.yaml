@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-configmap
+{{include "resource.name" . | indent 2}}
 {{include "mychart.labels" . | indent 2 }}
 {{ include "mychart.app" . | indent 4 }}
 {{include "mytemplate" . | indent 4}}

@@ -3,13 +3,14 @@ kind: Service
 metadata:
   name: {{ include "microservice.fullname" . }}
   labels:
-    {{- include "microservice.labels" . | nindent 4 }}
+    {{- include "microservice.common.labels" . | nindent 4 }}
+    {{- include "microservice.selector.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.service.targetPort }}
       protocol: TCP
       name: http
   selector:
-    {{- include "microservice.selectorLabels" . | nindent 4 }}
+    {{- include "microservice.selector.labels" . | nindent 4 }}

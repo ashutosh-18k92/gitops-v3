@@ -11,10 +11,10 @@ spec:
   hosts:
   {{- if .Values.virtualService.hosts }}
   {{- range $index, $host := .Values.virtualService.hosts }}
-    - {{ printf "%s.%s" $host $domain  }}
+  - {{ printf "%s.%s" $host $domain }}
   {{- end }}
   {{- else}}
-    - {{ printf "%s.%s" .Release.Name $domain }}
+  - {{ printf "%s.%s" .Release.Name $domain }}
   {{- end}}
   gateways:
   {{- range $index, $gateway := .Values.virtualService.gateways }}
@@ -26,8 +26,7 @@ spec:
   {{- range $index, $route := .Values.virtualService.routes }}
   - match:
     - uri:
-        prefix:
-          {{ printf "/%s" $route }}
+        prefix: {{ printf "/%s" $route }}
     route:
     - destination:
         host: {{ $destinationHost }}
@@ -35,14 +34,17 @@ spec:
           number: {{ $destinationPort }}
     retries:
       attempts: {{ default 3 $attempts }}
-      perTryTimeout: {{ printf "%ds" | default 2 $perTryTimeoutSeconds }}
+      perTryTimeout: {{ printf "%d" | default 2 $perTryTimeoutSeconds }}s
+      {{- with $.Values.virtualService.retryOn }}
+      retryon: {{ printf "%s" (join "," .) | quote }}
+      {{- end }}
   {{- end }}
   - match:
-  - uri:
-      prefix: /health
-  route:
-  - destination:
-      host: {{ $destinationHost}}
-      port:
-        number: {{$destinationPort}}
-  timeout: {{$perTryTimeoutSeconds}}
+    - uri:
+        prefix: /health
+    route:
+    - destination:
+        host: {{ $destinationHost}}
+        port:
+          number: {{$destinationPort}}
+    timeout: {{$perTryTimeoutSeconds}}s

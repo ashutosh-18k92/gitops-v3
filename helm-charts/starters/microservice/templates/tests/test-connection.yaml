@@ -3,7 +3,8 @@ kind: Pod
 metadata:
   name: "{{ include "microservice.fullname" . }}-test-connection"
   labels:
-    {{- include "microservice.labels" . | nindent 4 }}
+    {{- include "microservice.selector.labels" . | nindent 4 }}
+    {{- include "microservice.common.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test
 spec:

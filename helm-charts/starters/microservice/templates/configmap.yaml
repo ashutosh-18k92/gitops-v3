@@ -1,5 +1,0 @@
-name: {{ include "microservice.name" . }}
-labels:
-  fullname: {{ include "microservice.fullname" .}}
-{{include "microservice.labels" . | indent 2 }}
-namespace: {{ .Release.Namespace }}

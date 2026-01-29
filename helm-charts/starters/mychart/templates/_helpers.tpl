@@ -11,3 +11,8 @@ labels:
 app_name: "{{.Chart.Name}}"
 app_version: "{{.Chart.Version}}"
 {{- end}}
+
+
+{{- define "resource.name" -}}
+name: {{ printf "%s-%s" .Release.Name .Chart.Name}}
+{{- end}}

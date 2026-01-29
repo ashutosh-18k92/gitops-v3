@@ -15,7 +15,7 @@
 {{- else if .Values.virtualService.enabled }}
 {{- range $index, $host :=.Values.virtualService.hosts }}
   {{- range $index, $route :=$.Values.virtualService.routes }}
-  http{{ if $.Values.virtualService.tls }}s{{ end }}://{{ $host }}{{ $route }}
+  http{{ if $.Values.virtualService.tls }}s{{ end }}://{{ $host }}.{{$.Values.virtualService.domain}}/{{ $route }}
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.service.type }}
