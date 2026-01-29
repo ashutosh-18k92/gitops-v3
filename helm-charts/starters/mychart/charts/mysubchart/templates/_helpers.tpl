@@ -1,1 +1,0 @@
-{{- define "mytemplate"}}from: mysubchart{{end}}

@@ -1,44 +1,45 @@
-# Staging environment overrides for aggregator service
+# Development environment overrides for aggregator service
 
-# Two replicas for staging
-replicaCount: 2
+# Single replica for development
+replicaCount: 1
 
 image:
-  # Use versioned staging image
-  tag: "stage-v1.0.0"
-  pullPolicy: IfNotPresent
+  # Use latest dev image
+  tag: "dev-latest"
+  # Always pull in development
+  pullPolicy: Always
 
-# Staging resource limits (same as base)
+# Development resource limits (lower than production)
 resources:
   requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
     memory: "128Mi"
     cpu: "100m"
-  limits:
-    memory: "256Mi"
-    cpu: "200m"
 
-# Staging environment variables
+# Development environment variables
 env:
   PORT: "3000"
   SERVICE_NAME: "aggregator"
-  NODE_ENV: "staging"
-  LOG_LEVEL: "warn"
+  NODE_ENV: "development"
+  LOG_LEVEL: "debug"
 
-# Standard health checks
+# Faster health checks in development
 healthcheck:
   liveness:
-    initialDelaySeconds: 10
-    periodSeconds: 10
-  readiness:
     initialDelaySeconds: 5
     periodSeconds: 5
+  readiness:
+    initialDelaySeconds: 3
+    periodSeconds: 3
 
-# Staging VirtualService configuration
+# Development VirtualService configuration
 virtualService:
   enabled: true
   namespace: istio-system
   hosts:
-    - aggregator-service.stage.api.local
+    - aggregator-service.dev.api.local
   gateways:
     - super-fortnight-gateway
   http:
@@ -50,7 +51,7 @@ virtualService:
             port:
               number: 3000
       retries:
-        attempts: 3
+        attempts: 2 # Fewer retries in dev
         perTryTimeout: 2s
         retryOn: 5xx,reset,connect-failure,refused-stream
     - match:
@@ -62,23 +63,22 @@ virtualService:
               number: 3000
       timeout: 2s
 
-# Standard Istio sidecar
+# Istio sidecar with lower resources
 istio:
   enabled: true
-  proxyCPU: "100m"
-  proxyMemory: "128Mi"
+  proxyCPU: "50m"
+  proxyMemory: "64Mi"
   rewriteAppHTTPProbers: "true"
 
 podAnnotations:
-  sidecar.istio.io/proxyCPU: "100m"
-  sidecar.istio.io/proxyMemory: "128Mi"
+  sidecar.istio.io/proxyCPU: "50m"
+  sidecar.istio.io/proxyMemory: "64Mi"
   sidecar.istio.io/rewriteAppHTTPProbers: "true"
 
-# Enable PDB for staging
+# No PDB in development
 podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
+  enabled: false
 
-# No autoscaling in staging (fixed replicas for testing)
+# No autoscaling in development
 autoscaling:
   enabled: false

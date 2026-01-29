@@ -21,7 +21,7 @@ resources:
 # Development environment variables
 env:
   PORT: "3000"
-  SERVICE_NAME: "aggregator"
+  SERVICE_NAME: "microservice"
   NODE_ENV: "development"
   LOG_LEVEL: "debug"
 

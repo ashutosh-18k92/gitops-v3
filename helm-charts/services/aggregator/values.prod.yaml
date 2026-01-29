@@ -20,9 +20,9 @@ resources:
 # Production environment variables
 env:
   PORT: "3000"
-  SERVICE_NAME: "microservice"
+  SERVICE_NAME: "aggregator"
   NODE_ENV: "production"
-  LOG_LEVEL: "error"
+  LOG_LEVEL: "warn"
 
 # Conservative health checks for production
 healthcheck:
@@ -42,7 +42,7 @@ virtualService:
   enabled: true
   namespace: istio-system
   hosts:
-    - aggregator-service # Production domain
+    - aggregator-service.api.company.com # Production domain
   gateways:
     - super-fortnight-gateway
   http:

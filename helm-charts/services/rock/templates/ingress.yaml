@@ -14,7 +14,7 @@ spec:
   - {{ printf "%s.%s" $host $domain }}
   {{- end }}
   {{- else}}
-  - {{ printf "%s.%s.%s" .Release.Name .Values.env.NODE_ENV $domain }}
+  - {{ printf "%s.%s" .Release.Name $domain }}
   {{- end}}
   gateways:
   {{- range $index, $gateway := .Values.virtualService.gateways }}

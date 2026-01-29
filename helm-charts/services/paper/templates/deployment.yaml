@@ -57,11 +57,11 @@ spec:
                 name: {{ $value }}
             {{- end }}
           {{- end }}
-          {{- with .Values.healthCheck.livenessProbe }}
+          {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.healthCheck.readinessProbe }}
+          {{- with .Values.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}

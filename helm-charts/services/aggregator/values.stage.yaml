@@ -22,7 +22,7 @@ env:
   PORT: "3000"
   SERVICE_NAME: "aggregator"
   NODE_ENV: "staging"
-  LOG_LEVEL: "warn"
+  LOG_LEVEL: "info"
 
 # Standard health checks
 healthcheck:
