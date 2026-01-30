@@ -27,6 +27,9 @@ Understand the platform architecture and design principles:
 - **[Helm + Kustomize Hybrid](architecture/helm-kustomize-hybrid.md)**  
   How we combine Helm charts with Kustomize overlays
 
+- **[ApplicationSet Pattern](architecture/applicationset-pattern.md)**  
+  How we dynamically manage environments using ArgoCD ApplicationSets
+
 ## Guides
 
 Step-by-step guides for common tasks:
