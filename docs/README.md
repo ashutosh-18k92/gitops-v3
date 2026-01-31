@@ -24,11 +24,11 @@ Understand the platform architecture and design principles:
 - **[Cloud-Native Workflow](architecture/cloud-native-workflow.md)**  
   Complete workflow from development to deployment
 
-- **[Helm + Kustomize Hybrid](architecture/helm-kustomize-hybrid.md)**  
-  How we combine Helm charts with Kustomize overlays
+- **[ArgoCD Multi-Source Helm](architecture/helm-kustomize-hybrid.md)**  
+  How we use ArgoCD's multi-source pattern for Helm 4.x compatibility and team autonomy
 
 - **[ApplicationSet Pattern](architecture/applicationset-pattern.md)**  
-  How we dynamically manage environments using ArgoCD ApplicationSets
+  Git Files Generator for team-controlled environments and chart versions
 
 ## Guides
 
