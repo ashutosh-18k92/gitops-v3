@@ -11,44 +11,75 @@ This architecture enables **team autonomy**, **selective adoption**, and **GitOp
 ```mermaid
 ---
 title: Three Tier Deployment Architecture
+config:
+  theme: forest
+  look: classic
+  layout: elk
 ---
-
-graph LR
-    subgraph "Tier 1: Platform Chart"
-        A[sf-helm-registry<br/>GitHub Repository]
-        A1[api/ Helm Chart<br/>v0.1.0, v0.2.0, ...]
-        A --> A1
+%%{init: {'flowchart': {'subGraphTitleMargin': 50}}}%%
+graph TB
+    subgraph helm-charts[**Tier 1<br/>SF Helm Charts**]
+        Chart@{icon: "logos:github-icon", label: "SF-HELM-CHARTS", shape: "circle"}
+        Api@{icon: "logos:helm", label: "api/ Helm Chart<br/>v0.1.0, v0.2.0, ...", shape: "circle"}
+        Chart --> Api
     end
 
-    subgraph "Tier 2: Team Repositories"
-        B[aggregator-service<br/>GitHub Repository]
-        B1[src/ - Application Code]
-        B2[deploy/ - Kustomize Config]
-        B-->B1
-        B-->B2
+    subgraph team[**Tier 2<br/>SF Api Repositories**]
+        aggregator[aggregator-service<br/>GitHub Repository]
+        src[src/ - Application Code]
+        kustomize[deploy/ - Kustomize Config]
+        aggregator-->src
+        aggregator-->kustomize
+        base["base/ <br/>- values.yaml"]
+        overlay["overlays/ <br/> - dev/ <br/> - stage/ <br/> - prod/"]
+        env["environments/ <br/> - dev.yaml <br/> - stage.yaml <br/> - prod.yaml"]
+        kustomize-->base
+        kustomize-->overlay
+        kustomize-->env
+        Api --> |refers v0.1.0|overlay
     end
 
-    subgraph "Tier 3: GitOps Repository"
-        F[gitops-v2<br/>GitHub Repository]
-        F1[services/<br/>ArgoCD Applications]
-        F --> F1
+    subgraph gitops[**Tier 3<br/> SF GitOps Repository**]
+        platform@{icon: "logos:github-icon", label: "SF-PLATFORM-GITOPS", shape: "circle"}
+
+        appset@{icon: "logos:argo", label: "AggregatorAppset", shape: "circle"}
+
+        generator@{icon: "logos:github-icon", label: "GitGenerator", shape: "circle"}
+
+        kmz@{icon: "logos:claude-icon", label: "Kustomize", shape: "circle"}
+
+        manifests@{icon: "logos:json", label: "Manifests"}
+
+        argocd@{icon: "logos:argo", label: "ArgoCD", shape: "circle"}
+
+        appset --> generator
+        appset --> kmz
+        generator -->|iterates over| env
+        generator -->|pass evn vars| kmz
+        overlay --> |"read overlays/{env}"| kmz
+        Api -->|fetch chart for env overlay | kmz
+        kmz -->|generates chart+base+overlay values|manifests
+        manifests -->|applies| argocd
     end
 
-    subgraph "Kubernetes Cluster"
-        G[ArgoCD]
-        H[Deployments, Services, HPA, etc.]
+    subgraph "**Kubernetes Cluster**"
+        k8s@{icon: "logos:kubernetes", label: "Kubernetes", shape:"hexagon"}
+        deployment[deployment]
+        service[service]
+        hpa[hpa]
+        istioVirtualService[istioVirtualService]
+        serviceAccount[serviceAccount]
+        othes[* * *]
+        k8s --> deployment
+        k8s --> service
+        k8s --> hpa
+        k8s --> istioVirtualService
+        k8s --> serviceAccount
+        k8s --> othes
     end
 
-    A1 -.->|Kustomize fetches| B2
-    B2 -->|ArgoCD monitors| F1
-    F1 --> G
-    G -->|Deploys| H
-
-    style A fill:#e1f5ff
-    style B fill:#fff4e1
-    style F fill:#e8f5e9
-    style G fill:#f3e5f5
-    style H fill:#f3e5f5
+    kustomize -->|ArgoCD monitors| argocd
+    argocd --> |deploy| k8s
 ```
 
 ## Tier 1: Platform Chart Repository
