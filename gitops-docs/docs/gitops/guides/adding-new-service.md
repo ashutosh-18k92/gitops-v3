@@ -744,7 +744,7 @@ After your service is deployed:
 
 ## Related Documentation
 
-- [Service-Specific Charts Pattern](service-specific-charts.md)
+- [Decentralized Helm Charts Pattern](service-specific-charts.md)
 - [Helm Chart Reference](../reference/helm-chart-reference.md)
 - [Feature Team Guide](feature-team-guide.md)
 - [Platform Team Guide](platform-team-guide.md)

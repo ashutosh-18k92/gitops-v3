@@ -340,5 +340,5 @@ kustomize build overlays/production | kubectl diff -f -
 ## Related Documentation
 
 - [Feature Team Guide](../guides/feature-team-guide.md)
-- [Helm + Kustomize Hybrid](../architecture/helm-kustomize-hybrid.md)
+- [Decentralized Helm Charts Pattern](../guides/service-specific-charts.md)
 - [Adding a New Service](../guides/adding-new-service.md)

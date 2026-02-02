@@ -441,6 +441,6 @@ The three-tier architecture provides:
 ## Related Documentation
 
 - [Cloud-Native Workflow](cloud-native-workflow.md)
-- [Helm + Kustomize Hybrid](helm-kustomize-hybrid.md)
+- [Helm + Kustomize Hybrid](deprecated/helm-kustomize-hybrid.md)
 - [Platform Team Guide](../guides/platform-team-guide.md)
 - [Feature Team Guide](../guides/feature-team-guide.md)

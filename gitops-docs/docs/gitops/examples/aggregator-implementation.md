@@ -284,5 +284,5 @@ The aggregator service exemplifies best-in-class cloud-native deployment practic
 - [Feature Team Guide](../guides/feature-team-guide.md)
 - [Platform Team Guide](../guides/platform-team-guide.md)
 - [Cloud-Native Workflow](../architecture/cloud-native-workflow.md)
-- [Helm + Kustomize Hybrid](../architecture/helm-kustomize-hybrid.md)
+- [Decentralized Helm Charts Pattern](../guides/service-specific-charts.md)
 - [Adding a New Service](../guides/adding-new-service.md)

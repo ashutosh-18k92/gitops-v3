@@ -489,7 +489,7 @@ kustomize build deploy/overlays/production | grep -A 20 "kind: Deployment"
 ### Getting Help
 
 1. Check this guide first
-2. Review [Helm + Kustomize Hybrid](../architecture/helm-kustomize-hybrid.md) documentation
+2. Review [Decentralized Helm Charts Pattern](service-specific-charts.md) documentation
 3. Ask in #platform-team Slack channel
 4. Create GitHub issue in sf-helm-registry
 

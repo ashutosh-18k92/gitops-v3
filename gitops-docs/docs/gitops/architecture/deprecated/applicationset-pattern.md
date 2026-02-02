@@ -1,5 +1,14 @@
 # ArgoCD ApplicationSet Pattern: Git Files Generator
 
+> [!CAUTION]
+> **This pattern is DEPRECATED and no longer recommended.**
+>
+> This document describes an older approach that has been replaced by the **[Decentralized Helm Charts Pattern](../../guides/service-specific-charts.md)**.
+>
+> **Why deprecated**: Still relies on remote chart repository, teams can't modify chart templates, complex ApplicationSet configuration.
+>
+> **Use instead**: [Decentralized Helm Charts Pattern](../../guides/service-specific-charts.md) where each service owns its own chart.
+
 This document describes our architectural approach to managing multiple environments for microservices using ArgoCD ApplicationSets with the **Git Files Generator**.
 
 ## Overview
@@ -317,4 +326,5 @@ If migrating from List Generator:
 3. **Test** with one environment first
 4. **Rollout** to all environments
 
-See [TEAM_AUTONOMY_CHART_VERSIONS.md](../../super-fortnight-infrastructure/feature-services/aggregator-service/TEAM_AUTONOMY_CHART_VERSIONS.md) for detailed migration guide.
+> [!NOTE]
+> This pattern is deprecated. See [Decentralized Helm Charts Pattern](../../guides/service-specific-charts.md) for the current recommended approach.

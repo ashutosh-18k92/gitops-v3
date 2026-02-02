@@ -345,7 +345,8 @@ helmCharts:
    # Add Git Files Generator
    ```
 
-See [ARGOCD_MULTI_SOURCE_SOLUTION.md](../../super-fortnight-infrastructure/feature-services/aggregator-service/ARGOCD_MULTI_SOURCE_SOLUTION.md) for detailed migration guide.
+> [!NOTE]
+> This pattern is deprecated. See [Decentralized Helm Charts Pattern](../../guides/service-specific-charts.md) for the current recommended approach.
 
 ## Benefits
 

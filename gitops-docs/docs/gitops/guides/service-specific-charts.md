@@ -1,8 +1,8 @@
-# Service-Specific Helm Charts Pattern
+# Decentralized Helm Charts Pattern
 
 ## Overview
 
-The service-specific charts pattern is our architectural approach where **each service owns its own Helm chart**, rather than referencing a shared remote chart. This provides team autonomy, eliminates Kustomize limitations, and enables proper Helm dependency management.
+The **Decentralized Helm Charts Pattern** is our architectural approach where **each service owns its own Helm chart**, rather than referencing a shared remote chart. This provides team autonomy, eliminates Kustomize limitations, and enables proper Helm dependency management.
 
 ## Architecture
 

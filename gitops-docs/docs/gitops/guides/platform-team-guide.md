@@ -526,6 +526,6 @@ Before releasing a new version:
 ## Related Documentation
 
 - [Three-Tier Architecture](../architecture/three-tier-architecture.md)
-- [Helm + Kustomize Hybrid](../architecture/helm-kustomize-hybrid.md)
+- [Decentralized Helm Charts Pattern](service-specific-charts.md)
 - [Feature Team Guide](feature-team-guide.md)
 - [Adding a New Service](adding-new-service.md)

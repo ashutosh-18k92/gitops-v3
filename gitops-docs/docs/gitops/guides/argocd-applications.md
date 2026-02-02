@@ -244,7 +244,7 @@ argocd repo add https://github.com/your-org/aggregator-service.git
 
 - [Cloud-Native Workflow](../architecture/cloud-native-workflow.md)
 - [Feature Team Guide](feature-team-guide.md)
-- [Helm + Kustomize Hybrid](../architecture/helm-kustomize-hybrid.md)
+- [Decentralized Helm Charts Pattern](../guides/service-specific-charts.md)
 - [Adding a New Service](adding-new-service.md)
 
 ## Support

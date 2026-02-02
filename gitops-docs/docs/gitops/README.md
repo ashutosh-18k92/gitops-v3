@@ -28,10 +28,10 @@ Understand the platform architecture and design principles:
 - **[Cloud-Native Workflow](architecture/cloud-native-workflow.md)**  
   Complete workflow from development to deployment
 
-- **[ArgoCD Multi-Source Helm](architecture/helm-kustomize-hybrid.md)**  
+- **[ArgoCD Multi-Source Helm](architecture/deprecated/helm-kustomize-hybrid.md)**  
   How we use ArgoCD's multi-source pattern for Helm 4.x compatibility and team autonomy
 
-- **[ApplicationSet Pattern](architecture/applicationset-pattern.md)**  
+- **[ApplicationSet Pattern](architecture/deprecated/applicationset-pattern.md)**  
   Git Files Generator for team-controlled environments and chart versions
 
 ## Guides
