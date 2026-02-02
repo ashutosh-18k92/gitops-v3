@@ -2,9 +2,9 @@
 
 ## Overview
 
-Complete reference for the base API Helm chart in `sf-helm-registry`.
+Complete reference for the base API Helm chart in `sf-helm-charts`.
 
-**Repository**: https://github.com/ashutosh-18k92/sf-helm-registry.git
+**Repository**: https://github.com/ashutosh-18k92/sf-helm-charts.git
 
 ## Chart Structure
 
@@ -27,7 +27,59 @@ api/
         └── test-connection.yaml
 ```
 
+## Identity System
+
+The chart uses a clear separation between **business service identity** and **Kubernetes deployment identity**.
+
+### Business Identity (`app.*`)
+
+Defines what the service IS:
+
+```yaml
+app:
+  name: aggregator-service # Business service name
+  component: api # Component type: api | worker | consumer
+  partOf: superfortnight # Optional: parent application/system
+```
+
+### Deployment Identity
+
+- **Resource names**: Use `.Release.Name` (e.g., `aggregator-dev`, `aggregator-prod`)
+- **Instance label**: `app.kubernetes.io/instance: {{ .Release.Name }}`
+
+### Label Structure
+
+**Common Labels** (metadata only):
+
+```yaml
+helm.sh/chart: api-0.1.7
+app.kubernetes.io/name: aggregator-service # Business identity
+app.kubernetes.io/component: api # Component type
+app.kubernetes.io/instance: aggregator-dev # Deployment identity
+app.kubernetes.io/version: v1 # Version for canary
+app.kubernetes.io/managed-by: Helm
+app.kubernetes.io/part-of: superfortnight # Optional
+```
+
+**Selector Labels** (for pod selection - stable and minimal):
+
+```yaml
+app.kubernetes.io/name: aggregator-service
+app.kubernetes.io/component: api
+app.kubernetes.io/instance: aggregator-dev
+app.kubernetes.io/version: v1
+```
+
 ## Values Reference
+
+### Business Identity
+
+```yaml
+app:
+  name: api # MUST be overridden in overlay values
+  component: api # api | worker | consumer
+  partOf: "" # Optional: parent application
+```
 
 ### Image Configuration
 
@@ -87,7 +139,7 @@ resources:
 ### Horizontal Pod Autoscaler
 
 ```yaml
-hpa:
+autoscaling:
   enabled: true
   minReplicas: 1
   maxReplicas: 10
@@ -100,19 +152,20 @@ hpa:
 ```yaml
 virtualService:
   enabled: true
+  namespace: istio-system
   hosts:
-    - service-name
+    - aggregator
+  domain: "api.local"
   gateways:
-    - istio-system/super-fortnight-gateway
-  http:
-    - match:
-        - uri:
-            prefix: /
-      route:
-        - destination:
-            host: service-name-service
-            port:
-              number: 80
+    - super-fortnight-gateway
+  routes:
+    - /api
+  attempts: 3
+  perTryTimeoutSeconds: 2
+  retryOn:
+    - 5xx
+    - reset
+    - connect-failure
 ```
 
 ### Service Account
@@ -127,52 +180,70 @@ serviceAccount:
 ### Affinity Rules
 
 ```yaml
-affinity:
-  podAntiAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                  - service-name
-          topologyKey: kubernetes.io/hostname
+# Node affinity (spreads pods across nodes)
+nodeAffinityEnabled: false
+nodeAffinityOverride: false
+nodeAffinity: {}
+
+# Zone affinity (spreads pods across availability zones)
+zoneAffinityEnabled: false
+zoneAffinityOverride: false
+zoneAffinity: {}
+
+# Legacy affinity block
+affinity: {}
 ```
 
 ## Template Helpers
 
-### microservice.name
+### api.name
 
-Returns the release name.
+Returns the release name for resource naming.
 
 ```go-template
-{{- define "microservice.name" -}}
+{{- define "api.name" -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 ```
 
-### microservice.fullname
+### api.fullname
 
-Returns `Release.Name-Chart.Name`.
+Returns the release name (same as `api.name`).
 
 ```go-template
-{{- define "microservice.fullname" -}}
-{{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- define "api.fullname" -}}
+{{- include "api.name" . }}
 {{- end }}
 ```
 
-### microservice.labels
+### api.labels
 
-Standard labels for all resources.
+Standard labels for all resources (metadata only).
 
 ```go-template
-{{- define "microservice.labels" -}}
-app.kubernetes.io/name: {{ include "microservice.name" . }}
+{{- define "api.labels" -}}
+helm.sh/chart: {{ include "api.chart" . }}
+app.kubernetes.io/name: {{ .Values.app.name }}
+app.kubernetes.io/component: {{ .Values.app.component }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Values.app.partOf }}
+app.kubernetes.io/part-of: {{ .Values.app.partOf }}
+{{- end }}
+{{- end }}
+```
+
+### api.selectorLabels
+
+Stable selector labels for pod selection.
+
+```go-template
+{{- define "api.selectorLabels" -}}
+app.kubernetes.io/name: {{ .Values.app.name }}
+app.kubernetes.io/component: {{ .Values.app.component }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion }}
 {{- end }}
 ```
 
@@ -181,28 +252,53 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 ### Development (values.dev.yaml)
 
 ```yaml
+app:
+  name: aggregator-service
+  component: api
+  partOf: superfortnight
+
+environment: development
 replicaCount: 1
+
+image:
+  tag: "dev-latest"
+  pullPolicy: Always
+
 env:
   LOG_LEVEL: "debug"
+
 resources:
   requests:
     memory: "64Mi"
     cpu: "50m"
-hpa:
+
+autoscaling:
   enabled: false
 ```
 
 ### Staging (values.stage.yaml)
 
 ```yaml
+app:
+  name: aggregator-service
+  component: api
+  partOf: superfortnight
+
+environment: staging
 replicaCount: 2
+
+image:
+  tag: "staging-latest"
+
 env:
   LOG_LEVEL: "info"
+
 resources:
   requests:
     memory: "128Mi"
     cpu: "100m"
-hpa:
+
+autoscaling:
   enabled: true
   minReplicas: 2
   maxReplicas: 10
@@ -211,17 +307,33 @@ hpa:
 ### Production (values.prod.yaml)
 
 ```yaml
+app:
+  name: aggregator-service
+  component: api
+  partOf: superfortnight
+
+environment: production
 replicaCount: 3
+
+image:
+  tag: "latest"
+
 env:
   LOG_LEVEL: "error"
+
 resources:
   requests:
     memory: "256Mi"
     cpu: "200m"
-hpa:
+
+autoscaling:
   enabled: true
   minReplicas: 3
   maxReplicas: 20
+
+# Enable high availability
+nodeAffinityEnabled: true
+zoneAffinityEnabled: true
 ```
 
 ## Usage Examples
@@ -229,14 +341,22 @@ hpa:
 ### Minimal Service Values
 
 ```yaml
+app:
+  name: my-service
+  component: api
+
 containerPort: 3000
+
 image:
   repository: "my-service"
+
 env:
   SERVICE_NAME: "my-service"
+
 virtualService:
   hosts:
     - my-service
+
 healthCheck:
   livenessProbe:
     httpGet:
@@ -246,14 +366,35 @@ healthCheck:
       port: 3000
 ```
 
+### Deploying Multiple Instances
+
+```bash
+# Deploy development instance
+helm install my-service-dev ./charts/api \
+  -f my-service/deploy/overlays/development/values.yaml
+
+# Deploy staging instance of same service
+helm install my-service-staging ./charts/api \
+  -f my-service/deploy/overlays/staging/values.yaml
+
+# Both deployments:
+# - Have SAME app.name: "my-service" (business identity)
+# - Have DIFFERENT instance: "my-service-dev" vs "my-service-staging"
+# - Can coexist in same or different namespaces
+```
+
 ### With Custom Resources
 
 ```yaml
+app:
+  name: my-service
+  component: api
+
 containerPort: 8080
+
 image:
   repository: "my-service"
-env:
-  SERVICE_NAME: "my-service"
+
 resources:
   requests:
     memory: "512Mi"
@@ -266,18 +407,51 @@ resources:
 ### With Custom HPA
 
 ```yaml
+app:
+  name: my-service
+  component: api
+
 containerPort: 3000
+
 image:
   repository: "my-service"
-hpa:
+
+autoscaling:
   enabled: true
   minReplicas: 5
   maxReplicas: 50
   targetCPUUtilizationPercentage: 70
 ```
 
+### High Availability Setup
+
+```yaml
+app:
+  name: my-service
+  component: api
+
+# Enable pod spreading across nodes and zones
+nodeAffinityEnabled: true
+zoneAffinityEnabled: true
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+```
+
+## Benefits of the Identity System
+
+✅ **Stable Selectors**: Labels based on `app.name` and `app.component` don't change accidentally  
+✅ **Clear Separation**: Business identity (`app.*`) vs deployment identity (`.Release.Name`)  
+✅ **Multiple Releases**: Can deploy same service with different release names  
+✅ **ArgoCD Friendly**: Application name = release name  
+✅ **Chart Independent**: Not tied to `.Chart.Name`  
+✅ **Semantic**: `app.name` = what it is, `.Release.Name` = this specific deployment
+
 ## Related Documentation
 
 - [Platform Team Guide](../guides/platform-team-guide.md)
 - [Feature Team Guide](../guides/feature-team-guide.md)
-- [Helm Registry Setup](../examples/helm-registry-setup.md)
+- [Adding New Service](../guides/adding-new-service.md)
+- [Kustomize Patterns](./kustomize-patterns.md)
