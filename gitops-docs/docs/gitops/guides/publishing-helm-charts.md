@@ -217,6 +217,82 @@ The `chart-releaser-action` automatically creates releases when you:
    - Creates GitHub release
    - Updates gh-pages
 
+## Local Validation
+
+It is highly recommended to run linting locally before pushing to replicate CI behavior.
+
+### Prerequisites
+
+- **Docker** (Recommended for exact CI parity)
+- OR: **Helm (v3)** and **chart-testing (ct)** installation
+
+### Steps to Reproduce CI Linting
+
+1.  **Clone and Enter Repository**:
+
+    ```bash
+    git clone https://github.com/ashutosh-18k92/aggregator-service.git
+    cd aggregator-service
+    ```
+
+2.  **Ensure Configuration Exists**:
+    Create `.ct.yaml` at the repo root if missing. Here is a sample configuration:
+
+    ```yaml
+    # chart-testing configuration
+    charts_dir: charts
+
+    lint:
+      # pass extra args to `helm lint` (strict is recommended in CI)
+      extra_args:
+        - --strict
+
+      # number of parallel helm lint jobs (optional)
+      concurrency: 4
+
+    install:
+      # maximum wait time for chart installs during `ct install` (format: Xm or Xs)
+      timeout: 10m
+
+      # cleanup installed releases after tests (recommended for CI)
+      cleanup: true
+    ```
+
+3.  **Run Quick Lint (All Charts)**:
+    Use the official Docker image to match CI exactly:
+
+    ```bash
+    docker run --rm -v "$(pwd)":/workdir -w /workdir quay.io/helmpack/chart-testing:latest ct lint --all
+    ```
+
+4.  **Lint Only Changed Charts (PR Mode)**:
+    Simulate a Pull Request check by comparing against the target branch (e.g., `main`):
+
+    ```bash
+    # Ensure history is available
+    git fetch origin main
+
+    # Run lint on changes
+    docker run --rm -v "$(pwd)":/workdir -w /workdir quay.io/helmpack/chart-testing:latest ct lint --local-changes --target-branch main
+    ```
+
+5.  **Single Chart Helm Lint**:
+    For a fast, independent check without Docker:
+    ```bash
+    helm lint charts/aggregator
+    ```
+
+### Troubleshooting Local Linting
+
+- **Maintainer Errors**: If you see errors about missing maintainers, update `Chart.yaml`:
+  ```yaml
+  maintainers:
+    - name: your-github-username
+      email: your-email@example.com
+      url: https://github.com/your-github-username
+  ```
+- **Git History**: If `ct` complains about git history, un-shallow the clone: `git fetch --unshallow`.
+
 ## Using Your Published Chart
 
 ### In Kustomize Overlays
@@ -269,16 +345,11 @@ helm install my-release your-service/your-service
 
 ### Lint Failures
 
-**Cause**: Chart doesn't pass `helm lint` checks.
+**Cause**: Chart doesn't pass `ct lint` or `helm lint` checks.
 
 **Solution**:
 
-```bash
-# Test locally before pushing
-helm lint charts/your-service
-
-# Fix issues and commit
-```
+See the [Local Validation](#local-validation) section above for detailed steps on reproducing CI failures locally.
 
 ## Best Practices
 
@@ -293,4 +364,5 @@ helm lint charts/your-service
 - [Helm Chart Releaser Action](https://github.com/helm/chart-releaser-action)
 - [Helm Chart Testing Action](https://github.com/helm/chart-testing-action)
 - [Helm Chart Releaser Documentation](https://helm.sh/docs/howto/chart_releaser_action/)
+- [Chart Testing Documentation](https://github.com/helm/chart-testing)
 - [GitHub Pages Documentation](https://docs.github.com/en/pages)
