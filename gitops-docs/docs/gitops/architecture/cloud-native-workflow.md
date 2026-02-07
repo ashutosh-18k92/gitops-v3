@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the **best-in-class cloud-native deployment workflow** for Super Fortnight microservices, implementing industry-leading GitOps practices with a **Helm + Kustomize hybrid** approach.
+This document describes the **cloud-native deployment workflow** for Super Fortnight microservices, implementing industry-leading GitOps practices with a **Helm + Kustomize hybrid** approach.
 
 ## Architecture Principles
 
@@ -17,15 +17,44 @@ This document describes the **best-in-class cloud-native deployment workflow** f
 ### Three-Tier Architecture
 
 ```mermaid
-graph TB
-    A[Platform Chart Repository<br/>sf-helm-registry] -->|Kustomize fetches| B[Team Service Repository<br/>aggregator-service]
-    B -->|ArgoCD monitors| C[GitOps Repository<br/>gitops-v2]
-    C -->|Deploys to| D[Kubernetes Cluster]
+---
+title: Three Tier Deployment Architecture
+config:
+  theme: forest
+  look: classic
+  layout: elk
+---
+graph LR
+  subgraph "**Starter Charts**"
+    baseChart@{icon: "logos:helm", label: "Starter Service Chart"}
+  end
 
-    style A fill:#e1f5ff
-    style B fill:#fff4e1
-    style C fill:#e8f5e9
-    style D fill:#f3e5f5
+  subgraph "**Feature Team Services**"
+    chart1@{icon: "logos:helm",label: "Chart-Service-I" }
+    chart2@{icon: "logos:helm",label: "Chart-Service-II" }
+    service1@{icon: "logos:github-icon",label: "Chart-Service-I" }
+    service2@{icon: "logos:github-icon",label: "Chart-Service-II" }
+    baseChart -->|initialize| chart1
+    baseChart -->|initialize| chart2
+    chart1 --> |manages| service1
+    chart2 -->|manages| service2
+  end
+
+  subgraph "**Kubernetes Clusters**"
+    dev@{icon: "logos:kubernetes", label: "Dev Cluster", shape:"hexagon"}
+    staging@{icon: "logos:kubernetes", label: "Staging Cluster", shape:"hexagon"}
+    production@{icon: "logos:kubernetes", label: "Production Cluster", shape:"hexagon"}
+  end
+
+  subgraph "**Platform GitOps**"
+    gitops@{icon: "logos:argo",label:"GitOps Repository"}
+    service1 -->|monitors| gitops
+    service2 -->|monitors| gitops
+    gitops -->|deploys| dev
+    gitops -->|deploys| production
+    gitops -->|deploys| staging
+  end
+
 ```
 
 ## Repository Structure
@@ -38,15 +67,38 @@ graph TB
 
 ```
 sf-helm-registry/
-└── api/
-    ├── Chart.yaml (v0.1.0)
-    ├── templates/
-    │   ├── deployment.yaml      # Deployment with affinity
-    │   ├── service.yaml          # ClusterIP service
-    │   ├── hpa.yaml              # Horizontal Pod Autoscaler
-    │   ├── istioVirtualService.yaml
-    │   └── serviceAccount.yaml
-    └── values.yaml               # Base defaults
+├── charts
+│   ├── api                                 # api chart
+│   │   ├── Chart.yaml
+│   │   ├── README.md
+│   │   ├── templates
+│   │   │   ├── deployment.yaml
+│   │   │   ├── _helpers.tpl
+│   │   │   ├── hpa.yaml
+│   │   │   ├── ingress.yaml
+│   │   │   ├── NOTES.txt
+│   │   │   ├── serviceAccount.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── tests
+│   │   │       └── test-connection.yaml
+│   │   ├── values.schema.json
+│   │   └── values.yaml
+│   └── worker                                # worker chart
+│       ├── Chart.yaml
+│       ├── README.md
+│       ├── templates
+│       │   ├── deployment.yaml
+│       │   ├── _helpers.tpl
+│       │   ├── hpa.yaml
+│       │   ├── ingress.yaml
+│       │   ├── NOTES.txt
+│       │   ├── serviceAccount.yaml
+│       │   ├── service.yaml
+│       │   └── tests
+│       │       └── test-connection.yaml
+│       ├── values.schema.json
+│       └── values.yaml
+└── README.md
 ```
 
 **Features**:
@@ -65,26 +117,52 @@ sf-helm-registry/
 
 ```
 aggregator-service/
-├── src/
-│   └── index.ts              # TypeScript/Express application
-├── deploy/
-│   ├── base/
-│   │   ├── kustomization.yaml  # References sf-helm-registry
-│   │   └── values.yaml         # Service-specific (30 lines)
-│   └── overlays/
-│       ├── dev/
-│       │   └── kustomization.yaml
-│       └── production/
+├── charts
+│   ├── aggregator
+│   │   ├── Chart.yaml
+│   │   ├── README.md
+│   │   ├── templates
+│   │   │   ├── deployment.yaml
+│   │   │   ├── _helpers.tpl
+│   │   │   ├── hpa.yaml
+│   │   │   ├── ingress.yaml
+│   │   │   ├── NOTES.txt
+│   │   │   ├── serviceAccount.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── tests
+│   │   │       └── test-connection.yaml
+│   │   ├── values.schema.json
+│   │   └── values.yaml
+│   └── ct.yaml
+├── deploy
+│   ├── environments
+│   │   ├── development.yaml
+│   │   └── production.todo
+│   └── overlays
+│       ├── development
+│       │   ├── kustomization.yaml
+│       │   ├── patches
+│       │   │   ├── configmap.yaml
+│       │   │   ├── deployment.yaml
+│       │   │   ├── service.yaml
+│       │   │   └── ingress.yaml
+│       │   └── values.yaml
+│       └── production
 │           ├── kustomization.yaml
-│           └── patches/
-│               ├── deployment-affinity.yaml
-│               ├── hpa-scaling.yaml
-│               └── production-resources.yaml
+│           ├── patches
+│           │   ├── deployment-affinity.yaml
+│           │   ├── hpa-scaling.yaml
+│           │   └── production-resources.yaml
+│           └── values.yaml
+├── Dockerfile
 ├── package.json
-└── README.md
+├── package-lock.json
+├── pnpm-lock.yaml
+├── README.md
+├── src
+│   └── index.ts
+└── tsconfig.json
 ```
-
-**Key Principle**: Only 30 lines of service-specific configuration!
 
 ### 3. GitOps Repository (gitops-v2)
 
@@ -94,50 +172,87 @@ aggregator-service/
 ```
 gitops-v2/
 └── services/
-    ├── aggregator-service.yaml      # ArgoCD App (production)
-    ├── aggregator-service-dev.yaml  # ArgoCD App (dev)
+    ├── aggregator-service.yaml      # ArgoCD App
     └── README.md
 ```
 
 ## Workflow Deep Dive
 
-### Base Chart Configuration
+### Base Values
 
-**File**: `aggregator-service/deploy/base/kustomization.yaml`
+The `charts/aggregator/values.yaml` file contains the base configuration:
+
+### Testing the Chart
+
+```bash
+# Render chart with default values
+helm template aggregator ./charts/aggregator
+
+# Render with development values
+helm template aggregator ./charts/aggregator \
+  -f deploy/overlays/development/values.yaml
+
+# Validate chart
+helm lint ./charts/aggregator
+```
+
+## Deployment
+
+### Environment Overlays
+
+Each environment has its own overlay in `deploy/overlays/`:
+
+```
+deploy/overlays/
+└── [environment]/
+     ├── kustomization.yaml    # References aggregator chart
+     ├── values.yaml           # env-specific values
+     └── patches/              # env-specific patches
+```
+
+### Example Development Overlay
+
+**File**: `deploy/overlays/development/kustomization.yaml`
 
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 helmCharts:
-  - name: api
-    repo: https://github.com/ashutosh-18k92/sf-helm-registry.git
-    releaseName: aggregator
-    namespace: super-fortnight
+  - name: aggregator
+    repo: https://ashutosh-18k92.github.io/aggregator-service
+    releaseName: aggregator-service
+    namespace: super-fortnight-dev
     valuesFile: values.yaml
-    version: 0.1.0 # Team controls version!
+    version: v0.1.0
     includeCRDs: false
 ```
 
-**File**: `aggregator-service/deploy/base/values.yaml`
+**File**: `deploy/overlays/development/values.yaml`
 
 ```yaml
-# Only service-specific overrides (30 lines total)
-containerPort: 3000
+app:
+  name: aggregator-service
+  component: api
+  partOf: superfortnight
+
+environment: development
+
 image:
-  repository: "aggregator-service"
+  tag: "dev-latest"
+  pullPolicy: Always
+
 env:
-  SERVICE_NAME: "aggregator-service"
-virtualService:
-  hosts:
-    - aggregator
-healthCheck:
-  livenessProbe:
-    httpGet:
-      port: 3000
-  readinessProbe:
-    httpGet:
-      port: 3000
+  LOG_LEVEL: "debug"
+  NODE_ENV: "development"
+
+autoscaling:
+  enabled: false
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
 ```
 
 ### Environment Overlays
@@ -157,28 +272,57 @@ healthCheck:
 
 ### ArgoCD Integration
 
-**File**: `gitops-v2/services/aggregator-service.yaml`
+**File**: `gitops-v2/services/aggregator-appset.yaml`
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
   name: aggregator-service
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "100"
 spec:
-  source:
-    repoURL: https://github.com/ashutosh-18k92/aggregator-service.git
-    targetRevision: main
-    path: deploy/overlays/production
-    kustomize:
-      version: v5.0.0
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: super-fortnight
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/ashutosh-18k92/aggregator-service.git
+        revision: main
+        files:
+          - path: "deploy/environments/*.yaml"
+
+  template:
+    metadata:
+      name: "aggregator-service-{{.env}}"
+      namespace: argocd
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+
+    spec:
+      project: default
+
+      # Single source: Kustomize overlay (includes Helm chart + patches)
+      source:
+        repoURL: https://github.com/ashutosh-18k92/aggregator-service.git
+        targetRevision: "{{.targetRevision}}"
+        path: deploy/overlays/{{.env}}
+        kustomize: {} # Uses global --enable-helm from argocd-cm
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{.namespace}}"
+
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
 ```
 
 ## Team Workflows
@@ -213,26 +357,7 @@ git push
 - ✅ Easy rollback
 - ✅ Complete team ownership
 
-### Scenario 2: Adopting Platform Updates
-
-```bash
-# Platform team releases API chart v0.2.0
-# Team reviews changelog and decides to adopt
-
-cd aggregator-service/deploy/base
-vim kustomization.yaml
-# Change: version: 0.1.0 → 0.2.0
-
-# Test locally
-kustomize build ../overlays/production
-
-# Verify changes
-kustomize build ../overlays/production | kubectl diff -f -
-
-# Commit when satisfied
-git commit -m "Adopt API chart v0.2.0 - adds new monitoring labels"
-git push
-```
+### Scenario 2: Should we allow Platform Starter Chart Updates?
 
 **Benefits**:
 
@@ -241,7 +366,9 @@ git push
 - ✅ No forced updates
 - ✅ Gradual rollout across teams
 
-### Scenario 3: Custom Configuration
+### Scenario 3: Custom Configuration (Patches)
+
+> ArgoCD runs into **drift** issue with patches when there is an overlapping configuration between overlays and patches. We should only apply patches for which there exists no configuration in the chart templates. For the configurations that templates are designed to substitute must only be overriden with overlays and not by patches.
 
 ```bash
 # Add production-specific feature flag
@@ -263,7 +390,13 @@ spec:
 EOF
 
 vim kustomization.yaml
-# Add: - patches/feature-flag.yaml
+# declare patch (among other patches)
+patches:
+  - target: # narrow down the target to patch (best practice)
+      kind: Deployment
+      name: aggregator-api-v1
+    path: patches/feature-flag.yaml
+
 
 git commit -m "Enable caching in production"
 git push

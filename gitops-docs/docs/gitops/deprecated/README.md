@@ -1,4 +1,6 @@
-# Deprecated Architecture Documentation
+# ⚠️ Deprecated
+
+## Deprecated Architecture Documentation
 
 This folder contains documentation for **deprecated architectural patterns** that have been replaced by the **Decentralized Helm Charts Pattern**.
 
@@ -24,7 +26,7 @@ The documents in this folder describe older approaches to solving the Helm + Kus
 
 **Replaced by**: [Decentralized Helm Charts Pattern](../../guides/service-specific-charts.md)
 
-### 2. ApplicationSet with Git Files Generator
+### 2. ApplicationSet + Git Files Generator - Referring Base `api` Chart
 
 **File**: [`applicationset-pattern.md`](./applicationset-pattern.md)
 
